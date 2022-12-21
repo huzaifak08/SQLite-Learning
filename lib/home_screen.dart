@@ -37,20 +37,65 @@ class _HomeScreenState extends State<HomeScreen> {
             child: FutureBuilder(
               future: notesList,
               builder: (context, AsyncSnapshot<List<NotesModel>> snapshot) {
-                return ListView.builder(
-                  itemCount: snapshot.data?.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.all(8),
-                        title: Text(snapshot.data![index].title.toString()),
-                        subtitle:
-                            Text(snapshot.data![index].description.toString()),
-                        trailing: Text(snapshot.data![index].age.toString()),
-                      ),
-                    );
-                  },
-                );
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                    itemCount: snapshot.data?.length,
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        onTap: () {
+                          // Update Data on Click:
+
+                          dbHelper!.update(NotesModel(
+                              id: snapshot.data![index].id,
+                              title: 'Huzaifa',
+                              age: 19,
+                              description: 'Updated Data',
+                              email: 'myemail'));
+                          setState(() {
+                            notesList = dbHelper!.getNotesList();
+                          });
+                        },
+                        child: Dismissible(
+                          key: ValueKey<int>(snapshot.data![index].id!),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: Colors.red,
+                            child: Icon(Icons.delete_forever),
+                          ),
+
+                          // Delete Code Here:
+                          onDismissed: ((DismissDirection direction) {
+                            setState(() {
+                              // Delete from database:
+                              dbHelper!.delete(snapshot.data![index].id!);
+
+                              // Get Data again after deletion of certain data:
+                              notesList = dbHelper!.getNotesList();
+
+                              // Remove the index from the appeared screen also:
+                              snapshot.data!.remove(snapshot.data![index]);
+                            });
+                          }),
+                          child: Card(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.all(8),
+                              title:
+                                  Text(snapshot.data![index].title.toString()),
+                              subtitle: Text(
+                                  snapshot.data![index].description.toString()),
+                              trailing:
+                                  Text(snapshot.data![index].age.toString()),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
               },
             ),
           ),

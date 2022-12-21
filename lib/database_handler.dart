@@ -40,4 +40,23 @@ class DBHelper {
         await dbClient!.query('notes');
     return queryResult.map((e) => NotesModel.fromMap(e)).toList();
   }
+
+  Future<int> delete(int id) async {
+    var dbClient = await db;
+    return await dbClient!.delete(
+      'notes',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future update(NotesModel notesModel) async {
+    var dbClient = await db;
+    return await dbClient!.update(
+      'notes',
+      notesModel.toMap(),
+      where: 'id = ?',
+      whereArgs: [notesModel.id],
+    );
+  }
 }
